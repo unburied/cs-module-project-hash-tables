@@ -20,9 +20,10 @@ class HashTable:
     Implement this.
     """
 
-    def __init__(self, capacity):
-        # Your code here
-
+    def __init__(self, capacity = MIN_CAPACITY):
+        # Initialize emtpy array of at least min-capacity
+        self.capacity = capacity
+        self.arr = [None] * capacity
 
     def get_num_slots(self):
         """
@@ -34,7 +35,8 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        # return legnth of array
+        return len(self.arr)
 
 
     def get_load_factor(self):
@@ -43,7 +45,11 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        # filter out Nones and get amount of items stored
+        num_items = len(list(filter(None, self.arr)))
+
+        # load factor is num of items divied by length of array
+        return num_items / len(self.arr)
 
 
     def fnv1(self, key):
@@ -52,8 +58,16 @@ class HashTable:
 
         Implement this, and/or DJB2.
         """
+        hashed = 14695981039346656037 # fnv_offset_basis
+        fnv_prime = 1099511628211
+        encoded = key.encode('utf-8')
 
-        # Your code here
+        for byte in encoded:
+            hashed = hashed * fnv_prime
+            hashed = hashed ^ byte
+
+        return hashed
+
 
 
     def djb2(self, key):
@@ -71,7 +85,7 @@ class HashTable:
         between within the storage capacity of the hash table.
         """
         #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        return self.fnv1(key) % self.capacity
 
     def put(self, key, value):
         """
@@ -81,7 +95,12 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        # Get index using key
+        idx = self.hash_index(key)
+
+        # Store value at that index loacation
+        self.arr[idx] = value
+
 
 
     def delete(self, key):
@@ -92,8 +111,12 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        # Get index using key
+        idx = self.hash_index(key)
 
+        # set value in this index location back to None
+        self.arr[idx] = None
+        
 
     def get(self, key):
         """
@@ -103,8 +126,11 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        # get index using key
+        idx = self.hash_index(key)
 
+        # return the value at that index
+        return self.arr[idx]
 
     def resize(self, new_capacity):
         """
