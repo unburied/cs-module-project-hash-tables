@@ -7,6 +7,51 @@ class HashTableEntry:
         self.value = value
         self.next = None
 
+    def add_to_list(self, key, value):
+        new_node = HashTableEntry(key, value)
+        if not self.next:
+            self.next = new_node
+        else:
+            self.next.next = new_node
+
+    def get_value(self, key):
+        if self.key == key:
+            return self.value
+
+        current = self.next
+
+        while (current):
+            if current.key == key:
+                return current.value
+            current = current.next  
+
+    def set_value(self,key, value):
+        if self.key == key:
+            self.value = value
+
+        current = self.next
+
+        while (current)::
+            if current.key == key:
+                self.value = value
+                break
+            current = current.next  
+
+    def del_key(self, key):
+        # if 'head' just del key value pair
+        # need to keep for referene to next nodes
+        if self.key == key:
+            self.key = None
+            self.value = None
+
+        current = self.next
+        temp = self
+        while (current):
+            if current.key == key:
+                temp.next = current.next
+                break
+            temp = current
+            current = current.next  
 
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
