@@ -76,7 +76,13 @@ class HashTable:
 
         Implement this, and/or FNV-1.
         """
-        # Your code here
+        hashed = 5381
+        encoded = key.encode('utf-8')
+
+        for char in encoded:
+            hashed = (( hashed << 5) + hashed) + char
+    
+        return hashed
 
 
     def hash_index(self, key):
@@ -85,7 +91,7 @@ class HashTable:
         between within the storage capacity of the hash table.
         """
         #return self.fnv1(key) % self.capacity
-        return self.fnv1(key) % self.capacity
+        return self.djb2(key) % self.capacity
 
     def put(self, key, value):
         """
