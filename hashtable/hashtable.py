@@ -6,52 +6,99 @@ class HashTableEntry:
         self.key = key
         self.value = value
         self.next = None
+    
+    # Setters and getters for Node
+    def get_value(self):
+        return self.value
 
-    def add_to_list(self, key, value):
-        new_node = HashTableEntry(key, value)
-        if not self.next:
-            self.next = new_node
+    def set_value(self, value):
+        self.value = value
+
+    def get_key(self):
+        return self.key
+
+    def __repr__(self):
+        return f'LinkedList Node - key: {self.key}, value {self.value}'
+
+class LinkedList:
+    def __init__(self, key, value):
+        self.head = HashTableEntry(key, value)
+    
+    def add_to_head(self, key, value):
+        node = HashTableEntry(key, value)
+
+        if not self.head:
+            self.head = node
         else:
-            self.next.next = new_node
+            node.next = self.head
+            self.head = node
+    
+    def remove_from_head(self):
+        if not self.head:
+            return None
+        
+        temp = self.head
+        self.head = temp.next
+
+        return temp
 
     def get_value(self, key):
-        if self.key == key:
-            return self.value
-
-        current = self.next
+        current = self.head
 
         while (current):
-            if current.key == key:
-                return current.value
+            if current.get_key() == key:
+                return current.get_value()
+            
             current = current.next  
 
-    def set_value(self,key, value):
-        if self.key == key:
-            self.value = value
+        return None
 
-        current = self.next
+    def set_value(self, key, value):
+        current = self.head
 
-        while (current)::
-            if current.key == key:
-                self.value = value
+        while (current):
+            if current.get_key() == key:
+                current.set_value(value)
                 break
+
             current = current.next  
+
+            if not current:
+                return 'key not found'       
+
+    def check_for_key(self, key):
+        current = self.head
+
+        while(current):
+            if current.get_key() == key:
+                return True
+            
+            current = current.next
+        
+        return False
 
     def del_key(self, key):
-        # if 'head' just del key value pair
-        # need to keep for referene to next nodes
-        if self.key == key:
-            self.key = None
-            self.value = None
+        temp = self.head
+        if not temp:
+            return None
+        # If key is in the head, del head
+        elif temp.get_key() == key:
+            self.head = self.head.next
+            return temp.get_value()
 
-        current = self.next
-        temp = self
-        while (current):
-            if current.key == key:
+        current = self.head.next
+
+        while (current): 
+
+            if current.get_key() == key:
                 temp.next = current.next
-                break
+                return current.get_value()
+
             temp = current
-            current = current.next  
+            current = current.next
+        
+        return 'key not found'
+
 
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
@@ -70,6 +117,10 @@ class HashTable:
         self.capacity = capacity
         self.arr = [None] * capacity
 
+        # Counter for load factor
+        self.count = 0
+
+
     def get_num_slots(self):
         """
         Return the length of the list you're using to hold the hash
@@ -84,18 +135,22 @@ class HashTable:
         return len(self.arr)
 
 
-    def get_load_factor(self):
+    def load_factor(self):
         """
         Return the load factor for this hash table.
 
         Implement this.
         """
-        # filter out Nones and get amount of items stored
-        num_items = len(list(filter(None, self.arr)))
+        thresh = .7
+        capacity = self.capacity
 
         # load factor is num of items divied by length of array
-        return num_items / len(self.arr)
+        load_factor = self.count / len(self.arr)
 
+        # check if thresholds are exceeded and update capacity
+        if load_factor > thresh:
+            capacity *= capacity
+            self.resize(capacity)
 
     def fnv1(self, key):
         """
@@ -149,10 +204,24 @@ class HashTable:
         # Get index using key
         idx = self.hash_index(key)
 
-        # Store value at that index loacation
-        self.arr[idx] = value
+        # check for collisions
+        if not self.arr[idx]:
+            # if empty at location, create new LL object
+            self.arr[idx] = LinkedList(key, value)
 
+            self.count += 1
 
+        # if key exist in LL, update value
+        elif self.arr[idx].check_for_key(key):
+            self.arr[idx].set_value(key,value)
+
+        # Append value to list
+        else:    
+            self.arr[idx].add_to_head(key, value)
+            self.count += 0
+
+        # check load factor thresholds
+        self.load_factor()
 
     def delete(self, key):
         """
@@ -165,8 +234,15 @@ class HashTable:
         # Get index using key
         idx = self.hash_index(key)
 
-        # set value in this index location back to None
-        self.arr[idx] = None
+        # check item in list 
+        if not self.arr[idx]:
+            return 'key not found'
+        else:
+        # delete item in this location
+            self.arr[idx].del_key(key)
+
+        # check load factor thresholds
+        self.load_factor()
         
 
     def get(self, key):
@@ -181,17 +257,41 @@ class HashTable:
         idx = self.hash_index(key)
 
         # return the value at that index
-        return self.arr[idx]
+        return self.arr[idx].get_value(key)
 
-    def resize(self, new_capacity):
+
+    def resize(self, capacity):
         """
         Changes the capacity of the hash table and
         rehashes all key/value pairs.
 
         Implement this.
         """
-        # Your code here
+        #update capacity
+        self.capacity = capacity
 
+        #store current values
+        temp_arr = self.arr
+
+        #create arr of new length
+        self.arr = [None] * self.capacity
+
+        # itterate array of old values
+        for item in temp_arr:
+            # itterate LL
+            if item:
+                while True:
+                    # pop head from LL
+                    node = item.remove_from_head()
+                    
+                    # escape loop if node is empty
+                    if not node:
+                        break
+
+                    # add items to new array
+                    self.put(node.get_key(), node.get_value())
+        
+        del temp_arr
 
 
 if __name__ == "__main__":
