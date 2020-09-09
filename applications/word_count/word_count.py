@@ -1,5 +1,29 @@
 def word_count(s):
-    # Your code here
+    counts = {}
+    ignore = [
+        '"', ':', ';', ',', '.', '-', '+', '=',
+        '/', '\\', '|', '[' ,']', '{', '}', '(',
+        ')', '*', '^', '&']
+    # clean string 
+    for ch in s:
+        if ch in ignore:
+            s = s.replace(ch, "")
+    s = s.lower()
+    s = s.split(" ")
+
+    # get word counts on split string by adding to dict
+    for word in s:
+        if len(word) == 0:
+            continue
+        elif word in counts:
+            counts[word] += 1
+        else:
+            counts[word] = 1
+
+
+    print(counts)
+    return counts
+
 
 
 
